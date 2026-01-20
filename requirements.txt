@@ -4,3 +4,6 @@ pdfplumber
 tiktoken
 faiss-cpu
 numpy
+fastapi
+uvicorn
+python-multipart

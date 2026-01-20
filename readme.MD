@@ -16,3 +16,9 @@ Ask questions over your PDFs using retrieval-augmented generation(RAG)
 ## Limitations
 - Depends on document quality
 - No UI or API yet
+
+# API
+POST /documents
+POST /chat
+
+Swagger: 127.0.0.1:8000/docs
