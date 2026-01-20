@@ -10,6 +10,7 @@ function App() {
   
   const [question, setQuestion] = useState("")
   const [messages, setMessages] = useState([])
+  const [sending, setSending] = useState(false)
 
   const chatEndRef = useRef(null)
 
@@ -54,7 +55,7 @@ function App() {
     const userMessage = {role: "user", text: question}
     setMessages((m) => [...m, userMessage])
     setQuestion("")
-    setLoading(true)
+    setSending(true)
 
     try{
       const res = await fetch(`${API}/chat`, {
@@ -76,7 +77,7 @@ function App() {
       setMessages((m) => [...m, {role: "bot", text: "Something went wrong"}])
     }
     finally{
-      setLoading(false)
+      setSending(false)
     }
   }
 
@@ -133,7 +134,7 @@ function App() {
                 <b>{m.role === "user"? "You" : "AI"}:</b> {m.text}
               </div>
             ))}
-            {loading && <p>AI is thinking...</p>}
+            {sending && <p>AI is thinking...</p>}
             <div ref={chatEndRef} />
           </div>
         </div>
@@ -142,12 +143,12 @@ function App() {
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
           placeholder="Ask a question..."
-          disabled={loading}
+          disabled={sending}
           style={{width: "80%", padding: "8px 14px", margin: "5px"}}  
         >
         </input>
 
-        <button onClick={sendQuestion} disabled={loading}
+        <button onClick={sendQuestion} disabled={sending}
           style={{
             padding: "8px 14px",
             borderRadius: "6px",
@@ -155,7 +156,7 @@ function App() {
             cursor: "pointer"
           }}
         >
-          {loading? "Thinking...": "Send"}
+          {sending? "Thinking...": "Send"}
         </button>
       </div>
       </div>
