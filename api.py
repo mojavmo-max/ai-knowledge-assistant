@@ -6,6 +6,10 @@ from qa import question_answer
 import time
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from vision.services.document_service import extract_text, process_document
+import uuid
+from starlette.concurrency import run_in_threadpool
+import anyio
 
 
 PORT = int(os.getenv("PORT", 8000))
@@ -17,6 +21,8 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 MAX_FILE_SIZE = 10 * 1024 * 1024 # 10 MB
 LAST_CALL = 0
+
+anyio.to_thread.current_default_thread_limiter().total_tokens = 10
 
 class Question(BaseModel):
     question: str
@@ -82,3 +88,29 @@ async def chat(q: Question):
         raise HTTPException(status_code=400, detail="Empty question")
     answer = question_answer(q.question)
     return {"answer": answer}
+
+@app.post("/invoiceDetails")
+async def invoiceDetails(file: UploadFile = File(...)):
+    '''
+        Upload an invoice document and index it for semantic search.
+    '''
+    doc_id = str(uuid.uuid4())
+    file_path = UPLOAD_DIR/f"{doc_id}_{file.filename}"
+    print(doc_id)
+
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
+
+    start  = time.time()
+    text = extract_text(file_path)
+    print("Extraction time:", time.time() - start)
+    start = time.time()
+    try:
+        structured, error = await run_in_threadpool(process_document, doc_id, text)
+        print("Processing time:", time.time() - start)
+        if error:
+            return {"success": False, "data": None, "error": error}
+
+        return {"success": True, "data": structured, "error": None}
+    except Exception as e:
+        return {"success": False, "data": None, "error": str(e)}

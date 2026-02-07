@@ -7,3 +7,6 @@ numpy
 fastapi
 uvicorn
 python-multipart
+pytesseract
+pillow
+cachetools
